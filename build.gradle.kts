@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "app.myoun.paperdock"
-version = "1.0-SNAPSHOT"
+version = "0.1.0"
 
 repositories {
     mavenCentral()
@@ -96,4 +96,45 @@ tasks.withType<Jar> {
             configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
         })
     }
+}
+
+
+tasks {
+    val thePackageTask = register("package", Copy::class) {
+        duplicatesStrategy = org.gradle.api.file.DuplicatesStrategy.INCLUDE
+
+        group = "package"
+        description = "Copies the release exe and resources into one directory"
+
+        from("$buildDir/processedResources/jvm/main") {
+            include("**/*")
+        }
+
+        from("$buildDir/processedResources/native/main") {
+            include("**/*")
+        }
+
+        from("$buildDir/bin/native/releaseExecutable") {
+            include("**/*")
+        }
+
+        into("$buildDir/packaged")
+        includeEmptyDirs = false
+        dependsOn("processResources")
+        dependsOn("assemble")
+    }
+
+    val zipTask = register<Zip>("packageToZip") {
+        group = "package"
+        description = "Copies the release exe and resources into one ZIP file."
+
+        archiveFileName.set("packaged.zip")
+        destinationDirectory.set(file("$buildDir/packagedZip"))
+
+        from("$buildDir/packaged")
+
+        dependsOn(thePackageTask)
+    }
+
+    named("build").get().dependsOn(zipTask.get())
 }
