@@ -9,36 +9,38 @@ class NativeFileModerator: AbstractFileModerator {
 
     val ioDispatcher = newFixedThreadPoolContext(75,"paperdock-native-io")
 
-    override fun write(path: Path, content: String) {
-        runBlocking(ioDispatcher) {
-            FileSystem.SYSTEM.write(path, true) {
-                write(ByteString.of(*content.encodeToByteArray()))
+    override suspend fun write(path: Path, content: String) {
+        withContext(ioDispatcher) {
+            launch {
+                FileSystem.SYSTEM.write(path, true) {
+                    write(ByteString.of(*content.encodeToByteArray()))
+                }
             }
         }
     }
 
 
-    override fun writeFiles(vararg pairs: Pair<Path, String>) {
-        runBlocking(ioDispatcher) {
+    override suspend fun writeFiles(vararg pairs: Pair<Path, String>) {
+        withContext(ioDispatcher) {
             pairs.map {
                 async {
                     FileSystem.SYSTEM.write(it.first) {
                         write(ByteString.of(*it.second.encodeToByteArray()))
                     }
                 }
-            }.forEach { it.await() }
+            }.forEach { it.start() }
         }
     }
 
 
-    override fun read(path: Path): String =
-        runBlocking(ioDispatcher) {
+    override suspend fun read(path: Path): String =
+        withContext(ioDispatcher) {
             FileSystem.SYSTEM.read(path) {
                 read(path)
             }
         }
 
-    override fun readResource(path: Path): String {
+    override suspend fun readResource(path: Path): String {
         if (path.toString() == "run.sh") {
             return """
                 ./gradlew build

@@ -47,6 +47,8 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.5")
                 implementation("net.mamoe.yamlkt:yamlkt:0.12.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
+                implementation("io.ktor:ktor-client-core:2.1.3")
+                implementation("io.ktor:ktor-client-cio:2.1.3")
             }
         }
         val nativeMain by getting

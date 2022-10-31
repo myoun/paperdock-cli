@@ -1,6 +1,10 @@
 package paperdock
 
+import io.ktor.client.*
+import io.ktor.client.engine.cio.*
 import kotlinx.cli.ExperimentalCli
+
+internal val httpClient = HttpClient(CIO) { }
 
 object PaperdockCli {
 
